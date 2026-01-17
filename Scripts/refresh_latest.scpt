@@ -3,7 +3,7 @@ tell application "iTunes"
         try
             -- 1. Calculate the cutoff time (Current Time - 24 Hours)
             set currentDate to (current date)
-            set cutoffDate to currentDate - (2 * 24 * 60 * 60) -- 24 hours in seconds
+            set cutoffDate to currentDate - (3 * 60 * 60) -- 24 hours in seconds
             
             -- 2. Find tracks: Media Kind is 'Podcast' AND Added Date is recent
             set recentPodcasts to (every file track whose media kind is podcast and date added is greater than cutoffDate)

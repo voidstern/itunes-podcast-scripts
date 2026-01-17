@@ -22,10 +22,10 @@ tell application "iTunes"
         end repeat
         
         -- Notification
-        display notification "Updated " & successCount & " of " & totalTracks & " episodes." with title "iTunes Script"
+        return "Updated " & successCount & " of " & totalTracks & " episodes."
         
     else
         -- Notification
-        display notification "Playlist 'Deletable' could not be found."
+        return "Playlist 'Deletable' could not be found."
     end if
 end tell

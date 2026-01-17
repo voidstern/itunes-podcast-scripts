@@ -19,5 +19,5 @@ tell application "iTunes"
     end repeat
     
     -- Optional: Desktop notification
-    display notification "Playlist updated with " & (count of startedTracks) & " books." with title "iTunes Sync"
+    display notification "Playlist updated with " & (count of startedTracks) & " books."
 end tell

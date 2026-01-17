@@ -65,7 +65,7 @@ while IFS= read -r -d '' file; do
   secondary_marker="${base_without_ext}.${SECONDARY_MARKER_EXT}"
 
   if [[ -e "$primary_marker" || -e "$secondary_marker" ]]; then
-    echo "${YELLOW}⊘ Skipping (marker exists):${RESET} $file"
+    # echo "${YELLOW}⊘ Skipping (marker exists):${RESET} $file"
     continue
   fi
 
