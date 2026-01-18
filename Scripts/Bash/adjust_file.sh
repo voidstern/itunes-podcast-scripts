@@ -57,19 +57,17 @@ secondary_marker="${base_without_ext}.${SECONDARY_MARKER_EXT}"
 # 1. Check for existing markers
 SKIP_SPEEDUP=false
 
+echo "${BLUE}→ Processing:${RESET} $(basename "$FILE")"
+
 if [[ -e "$primary_marker" || -e "$secondary_marker" ]]; then
   if [[ "$FORCE_MODE" == "true" ]]; then
-    echo "${YELLOW}⚠ Marker exists, but --force used.${RESET}"
-    echo "  → Skipping Speedup (Step A) to avoid double-processing."
-    echo "  → Forcing Embed (Step B) and Clean (Step C)."
+    echo "   ${YELLOW}⚠ Marker exists, but --force used. Skipping speedup, but forcing embed and clean.${RESET}"
     SKIP_SPEEDUP=true
   else
     # Normal behavior: skip everything if marked
     exit 0
   fi
 fi
-
-echo "${BLUE}→ Processing:${RESET} $(basename "$FILE")"
 
 # 2. Run Pipeline
 

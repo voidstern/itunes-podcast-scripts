@@ -53,12 +53,20 @@ echo "   ${CYAN}Speed factor:${RESET} ${effective_speed}x"
 
 # 4. Apply FFmpeg
 tmp_file="${dir_of_file}/temp_$(basename "$FILE")"
+ffmpeg_log=$(mktemp) # Create a temp file to capture ffmpeg output
 
-if ffmpeg -nostdin -i "$FILE" -filter:a "atempo=${effective_speed}" -vn -y -write_xing 0 "$tmp_file" > /dev/null 2>&1; then
+# Run ffmpeg, redirecting both stdout and stderr to the log file
+if ffmpeg -nostdin -i "$FILE" -filter:a "atempo=${effective_speed}" -vn -y -write_xing 0 "$tmp_file" > "$ffmpeg_log" 2>&1; then
   mv -f "$tmp_file" "$FILE"
+  rm -f "$ffmpeg_log" # Clean up log on success
   exit 0
 else
-  echo "   ${RED}✗ ffmpeg failed.${RESET}" >&2
+  echo "   ${RED}✗ ffmpeg failed.${RESET} Output:" >&2
+  echo "----------------------------------------" >&2
+  cat "$ffmpeg_log" >&2 # Print the error details
+  echo "----------------------------------------" >&2
+  
   rm -f "$tmp_file" 2>/dev/null || true
+  rm -f "$ffmpeg_log" # Clean up log on failure
   exit 1
 fi

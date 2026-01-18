@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# --- Colors ---
+if [[ -t 1 ]]; then
+	RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CYAN=$'\033[36m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
+else
+  RED=""; GREEN=""; CYAN=""; BOLD=""; RESET=""
+fi
+
 # --- FFMPEG DETECTION LOGIC ---
 
 # 1. Get the directory where this script is physically located
@@ -54,9 +61,9 @@ TEMP_FILE="${BASENAME}_clean.${EXT}"
 # Verify success
 if [ $? -eq 0 ]; then
   mv "$TEMP_FILE" "$FILE"
-  echo "   ${GREEN}✓ Metadata cleaned up for $FILE.${RESET}"
+  echo "   ✓ Metadata cleaned up for $FILE."
 else
-  echo "Error processing file."
+  echo "Error processing file $FILE."
   # Remove the temp file if it was created but failed
   [ -f "$TEMP_FILE" ] && rm "$TEMP_FILE"
   exit 1

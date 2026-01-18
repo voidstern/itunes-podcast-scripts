@@ -8,6 +8,13 @@
 #   - Embeds only if the cover exists alongside the file
 # ==============================================================================
 
+# --- Colors ---
+if [[ -t 1 ]]; then
+	RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CYAN=$'\033[36m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
+else
+  RED=""; GREEN=""; CYAN=""; BOLD=""; RESET=""
+fi
+
 # 1. Input Validation
 if [ -z "$1" ]; then
     echo "Usage: $0 <path_to_mp3_file>"
@@ -59,8 +66,8 @@ TEMP_FILE="$FILE_DIR/temp_$FILENAME"
 # Verify success
 if [ -f "$TEMP_FILE" ]; then
     mv "$TEMP_FILE" "$MP3_FILE"
-      echo "   ${GREEN}✓ Coverart embedded for $MP3_FILE.${RESET}"
+      echo "   ✓ Coverart embedded for $MP3_FILE."
 else
-    echo "   ❌ Failed to process file."
+    echo "   ❌ Failed to process file $MP3_FILE."
     exit 1
 fi

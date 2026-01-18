@@ -56,6 +56,8 @@ echo "${BOLD}${CYAN}Directory:${RESET} $INPUT_DIR"
 if [[ -n "$FORCE_FLAG" ]]; then
   echo "${BOLD}${YELLOW}Mode:${RESET} Force enabled (re-running metadata scripts on marked files)"
 fi
+echo "${CYAN}Scanning for audio files...${RESET}"
+echo
 
 # Prepare the command array base
 CMD=("${WORKER_SCRIPT}")
@@ -69,8 +71,19 @@ find "$INPUT_DIR" -type f \( \
   -iname "*.aac" -o -iname "*.wav" -o -iname "*.aiff" \
 \) ! -name 'temp_*' -print0 | \
 while IFS= read -r -d '' file; do
-  # Execute the constructed command with the file appended
-  "${CMD[@]}" "$file"
+  
+  # Resolve absolute path safely
+  if command -v realpath >/dev/null 2>&1; then
+    # Standard Linux/Modern macOS
+    abs_file=$(realpath "$file")
+  else
+    # Fallback for macOS Mojave (uses built-in Python)
+    # This solves the "cd: /../iTunes" error by letting Python handle the path math
+    abs_file=$(python -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$file")
+  fi
+
+  # Execute the constructed command with the absolute path
+  "${CMD[@]}" "$abs_file"
 done
 
 echo
