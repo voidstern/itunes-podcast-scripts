@@ -38,8 +38,6 @@ EXT="${FILE##*.}"
 BASENAME="${FILE%.*}"
 TEMP_FILE="${BASENAME}_clean.${EXT}"
 
-echo "Cleaning metadata for: $FILE"
-
 # Execute using the detected command variable "$FFMPEG_CMD"
 "$FFMPEG_CMD" -i "$FILE" -map 0 -c copy \
   -metadata comment="" \
@@ -56,7 +54,7 @@ echo "Cleaning metadata for: $FILE"
 # Verify success
 if [ $? -eq 0 ]; then
   mv "$TEMP_FILE" "$FILE"
-  echo "Success: Metadata removed."
+  echo "   ${GREEN}✓ Metadata cleaned up for $FILE.${RESET}"
 else
   echo "Error processing file."
   # Remove the temp file if it was created but failed

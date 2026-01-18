@@ -35,39 +35,53 @@ done
 
 # Only run the update and sleep if the flag was provided
 if [ "$REFRESH_PODCASTS" = true ]; then
-  echo "${BOLD}${CYAN}[Podcasts]${RESET} Update flag detected. Refreshing podcasts..."
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Update flag detected. Refreshing podcasts..."
   
   # Update All Podcasts - there is no real status unfortunately
-  "$SCRIPT_DIR/update_podcasts.sh"
+  osascript "$SCRIPT_DIR/Apple Scripts/update_podcasts.scpt"
 
   # Update All Podcasts - there is no real status unfortunately, assume that 60 seconds are enough
-  "$SCRIPT_DIR/sleep.sh" -t 60
+  "$SCRIPT_DIR/Bash/sleep.sh" -t 60
 else
-  echo "${BOLD}${YELLOW}[Podcasts]${RESET} Skipping podcast refresh (use --refresh-podcasts to enable)."
+  echo "${BOLD}${YELLOW}[iTunes]${RESET} Skipping podcast refresh (use --refresh-podcasts to enable)."
 fi
 
-# Speed up all required files
-"$SCRIPT_DIR/speedup.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
+
 
 # Download any missing cover art files
-"$SCRIPT_DIR/get_podcast_cover.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
+echo
+echo "${BOLD}${CYAN}[Files]${RESET} Loading required podcast cover artwork..."
+"$SCRIPT_DIR/Bash/get_podcast_cover.sh" "$SCRIPT_DIR/../iTunes Media/Podcasts/"
+
+# Adjust all newly added files
+echo
+echo "${BOLD}${CYAN}[Files]${RESET} Adjusting audio files..."
+"$SCRIPT_DIR/Bash/adjust_folder.sh" "$SCRIPT_DIR/../iTunes Media/Podcasts/"
+
+# Remove markers of deleted files
+echo
+echo "${BOLD}${CYAN}[Files]${RESET} Adjusting audio files..."
+"$SCRIPT_DIR/Bash/cleanup_markers.sh" "$SCRIPT_DIR/../iTunes Media/Podcasts/"
+
+
 
 # Refresh the duration in all podcasts added in the last 24hr - this assumes this script is run daily.
+echo
 echo "${BOLD}${CYAN}[iTunes]${RESET} Refreshing durations in iTunes..."
-osascript "$SCRIPT_DIR/refresh_latest.scpt"
+osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
 
 # Mark Episodes in the "Deletable" playlist as played
+echo
 echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
-osascript "$SCRIPT_DIR/mark_played.scpt"
+osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
 
-# Mark Episodes in the "Deletable" playlist as played
+# Update the stared books playlist
+echo
 echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
-osascript "$SCRIPT_DIR/started_books.scpt"
+osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
 
-# Mark Episodes in the "Deletable" playlist as played
-echo "${BOLD}${CYAN}[iTunes]${RESET} Updating remote podcasts..."
-osascript "$SCRIPT_DIR/remote_podcasts.scpt"
-
-
-# Restart iTunes - this updates all smart playlists that are set to NOT live update
-# osascript Scripts/restart_itunes.scpt
+# Update the started podcasts playlist
+echo
+echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
+osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"

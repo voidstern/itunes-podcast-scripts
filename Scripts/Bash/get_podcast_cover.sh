@@ -115,14 +115,8 @@ traverse_tree() {
 # MAIN EXECUTION
 # ==============================================================================
 
-echo "🚀 Starting Podcast Cover Search..."
 if [ "$FORCE_MODE" = true ]; then
     echo "⚠️  Force Mode Active: Overwriting existing covers."
 fi
-echo "📂 Root: $TARGET_ROOT"
-echo "---------------------------------------------------"
 
 traverse_tree "$TARGET_ROOT"
-
-echo "---------------------------------------------------"
-echo "✨ Done."
