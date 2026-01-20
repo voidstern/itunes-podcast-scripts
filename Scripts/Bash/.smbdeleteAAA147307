@@ -72,6 +72,7 @@ find "$INPUT_DIR_ABS" -type f \( \
   -iname "*.aac" -o -iname "*.wav" -o -iname "*.aiff" \
 \) ! -name 'temp_*' -print0 | \
 while IFS= read -r -d '' file; do
+	echo "$file"
   # CRITICAL FIX: The " < /dev/null" at the end prevents the worker script (and ffmpeg)
   # from reading the pipe intended for this loop. This stops the "missing characters" error.
   "${CMD[@]}" "$file" < /dev/null

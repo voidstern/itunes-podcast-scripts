@@ -57,8 +57,6 @@ secondary_marker="${base_without_ext}.${SECONDARY_MARKER_EXT}"
 # 1. Check for existing markers
 SKIP_SPEEDUP=false
 
-echo "${BLUE}→ Processing:${RESET} $(basename "$FILE")"
-
 if [[ -e "$primary_marker" || -e "$secondary_marker" ]]; then
   if [[ "$FORCE_MODE" == "true" ]]; then
     echo "   ${YELLOW}⚠ Marker exists, but --force used. Skipping speedup, but forcing embed and clean.${RESET}"
@@ -70,6 +68,7 @@ if [[ -e "$primary_marker" || -e "$secondary_marker" ]]; then
 fi
 
 # 2. Run Pipeline
+echo "${BLUE}→ Processing:${RESET} $(basename "$FILE")"
 
 # Step A: Speedup (Critical / Non-Idempotent)
 if [[ "$SKIP_SPEEDUP" == "false" ]]; then
@@ -78,7 +77,7 @@ if [[ "$SKIP_SPEEDUP" == "false" ]]; then
       # --- CRITICAL POINT ---
       # Speedup succeeded. We immediately mark the file.
       : > "$primary_marker"
-      echo "   ${GREEN}✓ Speedup applied & marked.${RESET}"
+      echo "   ✓ Speedup applied & marked."
     else
       echo "   ${RED}✗ Speedup failed.${RESET} Aborting." >&2
       exit 1

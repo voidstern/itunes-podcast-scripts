@@ -18,12 +18,17 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # --- Argument Parsing ---
 REFRESH_PODCASTS=false
+SKIP_ITUNES=false
 
 for arg in "$@"; do
   case $arg in
     --refresh-podcasts)
       REFRESH_PODCASTS=true
       shift # Remove --refresh-podcasts from processing
+      ;;
+    --skip-itunes)
+      SKIP_ITUNES=true
+      shift # Remove --skip-itunes from processing
       ;;
     *)
       # Unknown option
@@ -61,27 +66,34 @@ echo "${BOLD}${CYAN}[Files]${RESET} Adjusting audio files..."
 
 # Remove markers of deleted files
 echo
-echo "${BOLD}${CYAN}[Files]${RESET} Adjusting audio files..."
+echo "${BOLD}${CYAN}[Files]${RESET} Cleaning orphaned markers..."
 "$SCRIPT_DIR/Bash/cleanup_markers.sh" "$SCRIPT_DIR/../iTunes Media/Podcasts/"
 
 
+# Check if we should skip the final iTunes operations
+if [ "$SKIP_ITUNES" = false ]; then
 
-# Refresh the duration in all podcasts added in the last 24hr - this assumes this script is run daily.
-echo
-echo "${BOLD}${CYAN}[iTunes]${RESET} Refreshing durations in iTunes..."
-osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
+  # Refresh the duration in all podcasts added in the last 24hr - this assumes this script is run daily.
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Refreshing durations in iTunes..."
+  osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
 
-# Mark Episodes in the "Deletable" playlist as played
-echo
-echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
-osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
+  # Mark Episodes in the "Deletable" playlist as played
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
+  osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
 
-# Update the stared books playlist
-echo
-echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
-osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
+  # Update the stared books playlist
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
+  osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
 
-# Update the started podcasts playlist
-echo
-echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
-osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+  # Update the started podcasts playlist
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
+  osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+
+else
+  echo
+  echo "${BOLD}${YELLOW}[iTunes]${RESET} Skipping iTunes maintenance scripts (requested via --skip-itunes)."
+fi

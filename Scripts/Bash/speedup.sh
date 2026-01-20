@@ -48,7 +48,6 @@ if [[ -f "$conf_file" ]]; then
   [[ -n "$conf_speed" ]] && effective_speed="$conf_speed"
 fi
 
-echo "${BLUE}→ Processing:${RESET} $FILE"
 echo "   ${CYAN}Speed factor:${RESET} ${effective_speed}x"
 
 # 4. Apply FFmpeg
