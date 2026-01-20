@@ -68,7 +68,7 @@ if [[ -e "$primary_marker" || -e "$secondary_marker" ]]; then
 fi
 
 # 2. Run Pipeline
-echo "${BLUE}→ Processing:${RESET} $(basename "$FILE")"
+echo "${BLUE}→ Processing:${RESET} $FILE"
 
 # Step A: Speedup (Critical / Non-Idempotent)
 if [[ "$SKIP_SPEEDUP" == "false" ]]; then

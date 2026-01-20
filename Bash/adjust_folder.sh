@@ -8,6 +8,11 @@ else
   RED=""; GREEN=""; CYAN=""; BOLD=""; RESET=""
 fi
 
+# --- Configuration ---
+# Must match markers in adjust_file.sh
+PRIMARY_MARKER_EXT="adjusted"
+SECONDARY_MARKER_EXT="adjust"
+
 # --- Argument Parsing ---
 FORCE_FLAG=""
 INPUT_DIR=""
@@ -72,7 +77,17 @@ find "$INPUT_DIR_ABS" -type f \( \
   -iname "*.aac" -o -iname "*.wav" -o -iname "*.aiff" \
 \) ! -name 'temp_*' -print0 | \
 while IFS= read -r -d '' file; do
-	echo "$file"
+	
+  # PERFORMANCE OPTIMIZATION:
+  # Check for markers here to avoid the overhead of spawning a sub-shell for every file.
+  if [[ -z "$FORCE_FLAG" ]]; then
+    base_without_ext="${file%.*}"
+    # Check if either marker exists
+    if [[ -e "${base_without_ext}.${PRIMARY_MARKER_EXT}" || -e "${base_without_ext}.${SECONDARY_MARKER_EXT}" ]]; then
+      continue
+    fi
+  fi
+
   # CRITICAL FIX: The " < /dev/null" at the end prevents the worker script (and ffmpeg)
   # from reading the pipe intended for this loop. This stops the "missing characters" error.
   "${CMD[@]}" "$file" < /dev/null

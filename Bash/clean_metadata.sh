@@ -65,7 +65,7 @@ TEMP_FILE="${BASENAME}_clean.${EXT}"
 # Verify success
 if [ $? -eq 0 ]; then
   mv "$TEMP_FILE" "$FILE"
-  echo "   ✓ Metadata cleaned up for $FILE."
+  echo "   ✓ Metadata cleaned."
 else
   echo "Error processing file $FILE."
   # Remove the temp file if it was created but failed

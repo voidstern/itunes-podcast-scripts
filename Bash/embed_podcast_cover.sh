@@ -66,7 +66,7 @@ TEMP_FILE="$FILE_DIR/temp_$FILENAME"
 # Verify success
 if [ -f "$TEMP_FILE" ]; then
     mv "$TEMP_FILE" "$MP3_FILE"
-      echo "   ✓ Coverart embedded for $MP3_FILE."
+      echo "   ✓ Coverart embedded."
 else
     echo "   ❌ Failed to process file $MP3_FILE."
     exit 1
