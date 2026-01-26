@@ -47,15 +47,14 @@ done
 if [ "$REFRESH_PODCASTS" = true ]; then
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Update flag detected. Refreshing podcasts..."
-  echo
   
   # Update All Podcasts - there is no real status unfortunately
   osascript "$SCRIPT_DIR/Apple Scripts/update_podcasts.scpt"
 
   # Update All Podcasts - there is no real status unfortunately, assume that 60 seconds are enough
-  "$SCRIPT_DIR/Bash/sleep.sh" -t 60
+  "$SCRIPT_DIR/Bash/sleep.sh" -t 15
 else
-  echo "${BOLD}${YELLOW}[iTunes]${RESET} Skipping podcast refresh (use --refresh-podcasts to enable)."
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Skipping podcast refresh (use --refresh-podcasts to enable)."
 fi
 
 
@@ -65,25 +64,21 @@ if [ "$SKIP_FILES" = false ]; then
   # Download any missing cover art files
   echo
   echo "${BOLD}${CYAN}[Files]${RESET} Loading required podcast cover artwork..."
-  echo
   "$SCRIPT_DIR/Bash/get_podcast_cover.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
 
   # Adjust all newly added files
   echo
   echo "${BOLD}${CYAN}[Files]${RESET} Adjusting audio files..."
-  echo
   "$SCRIPT_DIR/Bash/adjust_folder.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
 
   # Remove markers of deleted files
   echo
   echo "${BOLD}${CYAN}[Files]${RESET} Cleaning orphaned markers..."
-  echo
   "$SCRIPT_DIR/Bash/cleanup_markers.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
 
 else
   echo
   echo "${BOLD}${YELLOW}[Files]${RESET} Skipping file maintenance scripts (requested via --skip-files)."
-  echo
 fi
 
 
@@ -93,26 +88,33 @@ if [ "$SKIP_ITUNES" = false ]; then
   # Refresh the duration in all podcasts added in the last 24hr - this assumes this script is run daily.
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Refreshing durations in iTunes..."
-  echo
   osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
 
   # Mark Episodes in the "Deletable" playlist as played
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
-  echo
   osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
 
   # Update the stared books playlist
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
-  echo
   osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
 
   # Update the started podcasts playlist
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
-  echo
   osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+
+  # Update loved status and ratings (since the iPod classic doesn't know "Loved")
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing loved status and ratings..."
+  osascript "$SCRIPT_DIR/Apple Scripts/love_five_stars.scpt"
+
+  # Update podcast station playlists
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
+  osascript "$SCRIPT_DIR/Bash/create_stations.sh"
+
 
 else
   echo

@@ -1,9 +1,9 @@
 tell application "iTunes"
     with timeout of 86400 seconds
         try
-            -- 1. Calculate the cutoff time (Current Time - 24 Hours)
+            -- 1. Calculate the cutoff time (Current Time - 24 Hours), this should catch all episodes from the last refresh
             set currentDate to (current date)
-            set cutoffDate to currentDate - (3 * 60 * 60) -- 24 hours in seconds
+            set cutoffDate to currentDate - (24 * 60 * 60) -- 24 hours in seconds
             
             -- 2. Find tracks: Media Kind is 'Podcast' AND Added Date is recent
             set recentPodcasts to (every file track whose media kind is podcast and date added is greater than cutoffDate)

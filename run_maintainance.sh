@@ -92,7 +92,7 @@ if [ "$SKIP_ITUNES" = true ]; then
 fi
 
 if [ "$REFRESH_PODCAST" = true ]; then
-  CMD_FLAGS="$CMD_FLAGS --refresh-podcast"
+  CMD_FLAGS="$CMD_FLAGS --refresh-podcasts"
 fi
 
 # Construct full command

@@ -95,11 +95,11 @@ if [[ -x "$SCRIPT_EMBED" ]]; then
   fi
 fi
 
-# Step C: Clean Metadata (Idempotent)
-if [[ -x "$SCRIPT_CLEAN" ]]; then
-  if ! "$SCRIPT_CLEAN" "$FILE"; then
-    echo "   ${RED}✗ Clean metadata failed.${RESET} (Continuing pipeline...)" >&2
-  fi
-fi
+# Step C: Clean Metadata (Idempotent), tries to remove description and comments, to make it easier for the iPods database.
+# if [[ -x "$SCRIPT_CLEAN" ]]; then
+#   if ! "$SCRIPT_CLEAN" "$FILE"; then
+#     echo "   ${RED}✗ Clean metadata failed.${RESET} (Continuing pipeline...)" >&2
+#   fi
+# fi
 
 echo "   ${GREEN}✓ File processing complete.${RESET}"
