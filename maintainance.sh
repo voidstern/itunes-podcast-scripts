@@ -108,7 +108,7 @@ if [ "$SKIP_ITUNES" = false ]; then
   # Update podcast station playlists
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
-  osascript "$SCRIPT_DIR/Bash/update_stations.sh"
+  "$SCRIPT_DIR/Bash/update_stations.sh"
 
   # Update the started podcasts playlist
   echo
