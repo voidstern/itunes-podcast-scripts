@@ -100,11 +100,6 @@ if [ "$SKIP_ITUNES" = false ]; then
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
   osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
 
-  # Update the started podcasts playlist
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
-  osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
-
   # Update loved status and ratings (since the iPod classic doesn't know "Loved")
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing loved status and ratings..."
@@ -113,7 +108,12 @@ if [ "$SKIP_ITUNES" = false ]; then
   # Update podcast station playlists
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
-  osascript "$SCRIPT_DIR/Bash/create_stations.sh"
+  osascript "$SCRIPT_DIR/Bash/update_stations.sh"
+
+  # Update the started podcasts playlist
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
+  osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
 
 
 else

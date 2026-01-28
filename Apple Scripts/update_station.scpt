@@ -1,68 +1,90 @@
 use AppleScript version "2.4"
 use scripting additions
 
-on run {targetPlaylistName, simpleData}
+on run {groupingLabel, simpleData}
     
-    -- 1. Setup Target Playlist
-    tell application "iTunes"
-        if not (exists playlist targetPlaylistName) then
-            make new user playlist with properties {name:targetPlaylistName}
-        else
-            delete every track of playlist targetPlaylistName
-        end if
-    end tell
-    
-    -- 2. Process Lines
+    -- 1. Parse Lines to get Valid Podcast Names
     set podcastLines to paragraphs of simpleData
+    set validPodcastNames to {}
+    
+    set oldDelims to AppleScript's text item delimiters
+    set AppleScript's text item delimiters to "|"
     
     repeat with aLine in podcastLines
         set currentLine to contents of aLine
-        -- Ignore empty lines
         if length of currentLine > 0 then
-            my processPodcastLine(currentLine, targetPlaylistName)
+            -- Extract just the name (item 1) for validation
+            set end of validPodcastNames to item 1 of text items of currentLine
+        end if
+    end repeat
+    
+    set AppleScript's text item delimiters to oldDelims
+    
+    -- 2. NEW: Clean up old groupings
+    -- Finds all tracks with this grouping and removes it if the podcast is not in our new list.
+    my clearStaleGroupings(groupingLabel, validPodcastNames)
+    
+    -- 3. Process Lines (Add/Update Groupings)
+    repeat with aLine in podcastLines
+        set currentLine to contents of aLine
+        if length of currentLine > 0 then
+            my processPodcastLine(currentLine, groupingLabel)
         end if
     end repeat
     
 end run
 
-on processPodcastLine(aLine, playlistName)
-    -- Supported Formats: 
-    -- "Name|Count" -> Specific count
-    -- "Name|"      -> All episodes (0)
-    -- "Name"       -> All episodes (0)
+-- NEW HANDLER: Removes grouping from tracks not in the current input list
+on clearStaleGroupings(targetGrouping, validNamesList)
+    tell application "iTunes"
+        try
+            -- Fetch all tracks that currently have the specific grouping
+            set currentlyGroupedTracks to (every track of library playlist 1 whose grouping is targetGrouping)
+            
+            repeat with t in currentlyGroupedTracks
+                -- "album" in iTunes podcast context usually equals the Podcast Name
+                set tName to album of t
+                
+                -- If the track's podcast name is not in our current input list, clear the grouping
+                if tName is not in validNamesList then
+                    set grouping of t to ""
+                end if
+            end repeat
+        on error errMsg
+            log "Error clearing stale groupings: " & errMsg
+        end try
+    end tell
+end clearStaleGroupings
+
+on processPodcastLine(aLine, targetGrouping)
+    -- Formats: "Name|Count", "Name|", or "Name"
     
     set oldDelims to AppleScript's text item delimiters
     set AppleScript's text item delimiters to "|"
-    
     set pName to ""
     set pCount to 0
-    
     set lineParts to text items of aLine
     
-    -- PARSING LOGIC
+    -- Parse Name and Count
     if (count of lineParts) > 1 then
-        -- We have a pipe
         set pName to item 1 of lineParts
         set rawCount to item 2 of lineParts
-        
         if length of rawCount > 0 then
             try
                 set pCount to rawCount as integer
             on error
-                set pCount to 0 -- Default to All if parsing fails
+                set pCount to 0
             end try
         else
-            set pCount to 0 -- Pipe existed but was empty "Name|"
+            set pCount to 0
         end if
     else
-        -- No pipe found "Name"
         set pName to aLine
         set pCount to 0
     end if
     
     set AppleScript's text item delimiters to oldDelims
     
-    -- Validation: prevent processing if name is somehow empty
     if length of pName is 0 then return
     
     -- 3. Get Unplayed Tracks
@@ -77,31 +99,35 @@ on processPodcastLine(aLine, playlistName)
     
     if unplayedTracks is {} then return
     
-    -- 4. Sort safely
+    -- 4. Sort safely (Oldest First)
     set sortedTracks to my sortTracksByDateSafe(unplayedTracks)
     
-    -- 5. Slice List
-    set tracksToAdd to {}
+    -- 5. Slice List (Apply Count limit)
+    set tracksToUpdate to {}
     set totalFound to count of sortedTracks
     
     if pCount is 0 then
-        set tracksToAdd to sortedTracks
+        set tracksToUpdate to sortedTracks
     else
         if totalFound < pCount then
-            set tracksToAdd to sortedTracks
+            set tracksToUpdate to sortedTracks
         else
-            set tracksToAdd to items 1 through pCount of sortedTracks
+            set tracksToUpdate to items 1 through pCount of sortedTracks
         end if
     end if
     
-    -- 6. Add to Playlist
+    -- 6. Update Grouping Only (No Playlist Duplication)
     tell application "iTunes"
         try
-            repeat with tr in tracksToAdd
-                duplicate tr to playlist playlistName
+            repeat with tr in tracksToUpdate
+                try
+                    set grouping of tr to targetGrouping
+                on error
+                    log "Could not set grouping for track."
+                end try
             end repeat
         on error errMsg
-            log "Error adding tracks: " & errMsg
+            log "Error processing tracks: " & errMsg
         end try
     end tell
     
@@ -113,7 +139,6 @@ on sortTracksByDateSafe(trackList)
     
     set sortableList to {}
     
-    -- Extract Dates
     tell application "iTunes"
         repeat with tr in trackList
             try
@@ -126,12 +151,9 @@ on sortTracksByDateSafe(trackList)
         end repeat
     end tell
     
-    -- Bubble Sort (Oldest First)
     repeat with i from 1 to listCount - 1
         repeat with j from 1 to listCount - i
-            
             set nextIndex to j + 1
-            
             set itemA to item j of sortableList
             set itemB to item nextIndex of sortableList
             
@@ -139,11 +161,9 @@ on sortTracksByDateSafe(trackList)
                 set item j of sortableList to itemB
                 set item nextIndex of sortableList to itemA
             end if
-            
         end repeat
     end repeat
     
-    -- Reconstruct List
     set finalTracks to {}
     repeat with anItem in sortableList
         set end of finalTracks to (trackObj of anItem)
