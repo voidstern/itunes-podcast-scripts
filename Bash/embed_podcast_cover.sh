@@ -10,9 +10,9 @@
 
 # --- Colors ---
 if [[ -t 1 ]]; then
-	RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CYAN=$'\033[36m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
+  RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CYAN=$'\033[36m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
 else
-  RED=""; GREEN=""; CYAN=""; BOLD=""; RESET=""
+  RED=""; GREEN=""; YELLOW=""; BLUE=""; CYAN=""; RESET=""
 fi
 
 # 1. Input Validation
@@ -24,7 +24,7 @@ fi
 MP3_FILE="$1"
 
 if [ ! -f "$MP3_FILE" ]; then
-    echo "❌ Error: File not found: $MP3_FILE"
+    echo "   ${RED}Error: File not found: $MP3_FILE${RESET}"
     exit 1
 fi
 
@@ -37,7 +37,7 @@ if command -v ffmpeg &> /dev/null; then
 elif [ -x "$SCRIPT_DIR/ffmpeg" ]; then
     FFMPEG_BIN="$SCRIPT_DIR/ffmpeg"
 else
-    echo "❌ Error: ffmpeg not found."
+    echo "   ${RED}Error: ffmpeg not found.${RESET}"
     exit 1
 fi
 
@@ -49,7 +49,7 @@ COVER_FILE="$FILE_DIR/cover.png"
 
 # Check if cover exists in that specific folder
 if [ ! -f "$COVER_FILE" ]; then
-    echo "⚠️  No 'cover.png' found in $(basename "$FILE_DIR"). Skipping."
+    echo "   ${YELLOW}No 'cover.png' found in $(basename "$FILE_DIR"). Skipping.${RESET} "
     exit 0
 fi
 
@@ -66,8 +66,8 @@ TEMP_FILE="$FILE_DIR/temp_$FILENAME"
 # Verify success
 if [ -f "$TEMP_FILE" ]; then
     mv "$TEMP_FILE" "$MP3_FILE"
-      echo "   ✓ Coverart embedded."
+    echo "   ${GREEN}Coverart embedded.${RESET}"
 else
-    echo "   ❌ Failed to process file $MP3_FILE."
+    echo "   ${RED}Failed to process file $MP3_FILE.${RESET}"
     exit 1
 fi

@@ -9,6 +9,14 @@
 #   - Compatible: Works on legacy macOS (Python 2) and modern macOS (Python 3)
 # ==============================================================================
 
+# --- Colors ---
+if [[ -t 1 ]]; then
+  RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CYAN=$'\033[36m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
+else
+  RED=""; GREEN=""; YELLOW=""; BLUE=""; CYAN=""; RESET=""
+fi
+
+
 # Initialize variables
 TARGET_ROOT=""
 FORCE_MODE=false
@@ -36,7 +44,7 @@ fi
 
 # Ensure target exists
 if [ ! -d "$TARGET_ROOT" ]; then
-    echo "❌ Error: Directory not found: $TARGET_ROOT"
+    echo "   ${RED}Error: Directory not found: $TARGET_ROOT${RESET}"
     exit 1
 fi
 
@@ -54,7 +62,7 @@ url_encode() {
     elif command -v python &>/dev/null; then
         python -c "import sys, urllib; print urllib.quote(sys.argv[1])" "$string"
     else
-        echo "❌ Error: Neither python3 nor python found." >&2
+        echo "   ${RED}Error: Neither python3 nor python found.${RESET}" >&2
         return 1
     fi
 }
@@ -83,7 +91,7 @@ download_art_for_folder() {
         return
     fi
 
-    echo "🔍 Processing: $podcast_name"
+    echo "${BLUE}→ Processing: $podcast_name${RESET}"
 
     # URL Encode (Version agnostic)
     local encoded_name=$(url_encode "$podcast_name")
@@ -95,11 +103,11 @@ download_art_for_folder() {
     local img_url=$(extract_json_url "$json_response")
 
     if [ -z "$img_url" ]; then
-        echo "   ❌ Not found in Apple Directory."
+        echo "   ${RED}Not found in Apple Directory.${RESET}"
         return
     fi
 
-    echo "   ⬇️  Downloading artwork..."
+    echo "   Downloading artwork..."
     local temp_img="/tmp/podcast_dl_temp_$(date +%s)"
     
     curl -s "$img_url" -o "$temp_img"
@@ -108,9 +116,9 @@ download_art_for_folder() {
         # Convert/Save as PNG
         sips -s format png "$temp_img" --out "$cover_path" > /dev/null 2>&1
         rm "$temp_img"
-        echo "   ✅ Saved cover.png"
+        echo "   ${GREEN}Saved cover.png${RESET}"
     else
-        echo "   ❌ Download failed."
+        echo "   ${RED}Download failed.${RESET}"
     fi
 }
 
@@ -139,12 +147,12 @@ traverse_tree() {
 # ==============================================================================
 
 if [ "$FORCE_MODE" = true ]; then
-    echo "⚠️  Force Mode Active: Overwriting existing covers."
+    echo "   ${YELLOW}Force Mode Active: Overwriting existing covers.${RESET}"
 fi
 
 # Pre-flight check for Python availability
 if ! command -v python3 &>/dev/null && ! command -v python &>/dev/null; then
-    echo "❌ Critical Error: No Python interpreter found (python3 or python)."
+    echo "   ${RED}Critical Error: No Python interpreter found (python3 or python).${RESET}"
     echo "   Please install Python 3 (e.g., 'brew install python') or Xcode command line tools."
     exit 1
 fi
