@@ -105,15 +105,15 @@ if [ "$SKIP_ITUNES" = false ]; then
   echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing loved status and ratings..."
   osascript "$SCRIPT_DIR/Apple Scripts/love_five_stars.scpt"
 
-  # Update podcast station playlists
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
-  "$SCRIPT_DIR/Bash/update_stations.sh"
-
   # Update the started podcasts playlist
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
   osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+
+  # Update podcast station playlists
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
+  "$SCRIPT_DIR/Bash/update_stations.sh"
 
 
 else

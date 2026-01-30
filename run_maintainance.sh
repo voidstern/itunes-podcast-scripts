@@ -15,7 +15,7 @@ show_help() {
   echo ""
   echo "Options:"
   echo "  -r, --refresh-podcasts   Refresh podcasts (flag forwarded to maintenance script)"
-  echo "  -i, --inline             Run in current terminal (default: opens new window)"
+  echo "  -w, --window             Run in new terminal window (default: runs inline)"
   echo "  -h, --help               Show this help message"
   echo ""
 }
@@ -27,7 +27,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # Initialize variables
-INLINE=false
+OPEN_NEW_WINDOW=false
 REFRESH_PODCAST=false
 MODE_SELECTED=false
 SKIP_FILES=false
@@ -40,8 +40,8 @@ for arg in "$@"; do
       show_help
       exit 0
       ;;
-    -i|--inline)
-      INLINE=true
+    -w|--window)
+      OPEN_NEW_WINDOW=true
       shift
       ;;
     -r|--refresh-podcast|--refresh-podcasts)
@@ -67,7 +67,7 @@ for arg in "$@"; do
       shift
       ;;
     *)
-      # Shift unknown args (or you could print an error here)
+      # Shift unknown args
       shift
       ;;
   esac
@@ -100,11 +100,11 @@ fi
 FULL_COMMAND="'$TARGET_SCRIPT'$CMD_FLAGS"
 
 # 5. Execute
-if [ "$INLINE" = true ]; then
-  echo "Running inline: $FULL_COMMAND"
-  eval "$FULL_COMMAND"
-else
+if [ "$OPEN_NEW_WINDOW" = true ]; then
   echo "Launching in new terminal: $FULL_COMMAND"
   # We escape the quotes for the AppleScript string
   osascript -e "tell application \"Terminal\" to do script \"$FULL_COMMAND\""
+else
+  echo "Running inline: $FULL_COMMAND"
+  eval "$FULL_COMMAND"
 fi
