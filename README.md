@@ -74,7 +74,9 @@ The primary entry point is the `run_maintainance.sh` script, which provides seve
 
 ### Additional Options
 *   **`-r`, `--refresh-podcasts`**: Forces iTunes to check for and download new podcast episodes prior to running the other maintenance scripts.
-*   **`-w`, `--window`**: Opens a new Terminal window to run the script instead of running inline.
+*   **`-w`, `--window`**: Opens a new Terminal window to run the script instead of running inline. By default, the window will close automatically when the script finishes.
+    *   *Note: If the window stays open displaying "Process completed", you may need to check your Terminal settings. Go to **Terminal > Preferences > Profiles > Shell** and set "When the shell exits" to **"Close if the shell exited cleanly"**.*
+*   **`-k`, `--keep-open`**: Leaves the new Terminal window open after the script finishes (only applicable when used with `-w`).
 
 ## Automating the Scripts
 
@@ -99,6 +101,7 @@ To run the maintenance scripts automatically on your macOS Mojave machine, it is
         <!-- Use absolute paths -->
         <string>/Users/YOUR_USERNAME/Music/Scripts/run_maintainance.sh</string>
         <string>-a</string>
+        <string>-w</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>

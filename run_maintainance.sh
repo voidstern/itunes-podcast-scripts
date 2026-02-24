@@ -16,6 +16,7 @@ show_help() {
   echo "Options:"
   echo "  -r, --refresh-podcasts   Refresh podcasts (flag forwarded to maintenance script)"
   echo "  -w, --window             Run in new terminal window (default: runs inline)"
+  echo "  -k, --keep-open          Do not close the new terminal window after completion (only applies with -w)"
   echo "  -h, --help               Show this help message"
   echo ""
 }
@@ -32,6 +33,7 @@ REFRESH_PODCAST=false
 MODE_SELECTED=false
 SKIP_FILES=false
 SKIP_ITUNES=false
+KEEP_OPEN=false
 
 # 2. Parse Arguments
 for arg in "$@"; do
@@ -42,6 +44,10 @@ for arg in "$@"; do
       ;;
     -w|--window)
       OPEN_NEW_WINDOW=true
+      shift
+      ;;
+    -k|--keep-open)
+      KEEP_OPEN=true
       shift
       ;;
     -r|--refresh-podcast|--refresh-podcasts)
@@ -101,9 +107,16 @@ FULL_COMMAND="'$TARGET_SCRIPT'$CMD_FLAGS"
 
 # 5. Execute
 if [ "$OPEN_NEW_WINDOW" = true ]; then
-  echo "Launching in new terminal: $FULL_COMMAND"
-  # We escape the quotes for the AppleScript string
-  osascript -e "tell application \"Terminal\" to do script \"$FULL_COMMAND\""
+  if [ "$KEEP_OPEN" = true ]; then
+    echo "Launching in new terminal (keeping open): $FULL_COMMAND"
+    # We escape the quotes for the AppleScript string
+    osascript -e "tell application \"Terminal\" to do script \"$FULL_COMMAND\""
+  else
+    echo "Launching in new terminal (will close when done): $FULL_COMMAND"
+    # Appending 'exit' will terminate the shell session once the command finishes.
+    # By default in macOS Terminal, this closes the window.
+    osascript -e "tell application \"Terminal\" to do script \"$FULL_COMMAND; exit\""
+  fi
 else
   echo "Running inline: $FULL_COMMAND"
   eval "$FULL_COMMAND"
