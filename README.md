@@ -7,6 +7,7 @@ These scripts provide those missing features to an iTunes-based podcast syncing 
 ## Features
 
 - **Playback Speed Modification:** Speeds up podcast audio files (configurable per podcast).
+- **Intro/Outro Trimming:** Removes a configurable number of seconds from the start and/or end of each episode before applying the speed change.
 - **Updating Duration:** Updates the track duration within iTunes after the file has been sped up.
 - **Cover Art Embedding:** Searches for and embeds the podcast cover art directly into the MP3 files.
 - **Podcast "Stations":** Updates "station" playlists containing only the oldest `X` episodes of given podcasts.
@@ -18,7 +19,7 @@ These scripts provide those missing features to an iTunes-based podcast syncing 
 *   **Location:** 
     1. Place this `Scripts` folder right next to your `iTunes` folder (usually `~/Music/Scripts` next to `~/Music/iTunes`).
     2. Create a folder named `Stations` inside your `Music` folder (`~/Music/Stations`).
-*   **Dependencies:** Make sure `ffmpeg` is installed and available in your `PATH` (used by the file adjustment scripts).
+*   **Dependencies:** A pre-built `ffmpeg` binary is included in the `Bash/` folder and used automatically. If you already have `ffmpeg` installed in your `PATH`, that will be used instead. `bc` must be available in your `PATH` (standard on macOS).
 
 ### Smart Playlists Setup
 
@@ -48,14 +49,26 @@ Tech News Today|5
 A Very Long Podcast
 ```
 
-### Configuring Playback Speed (`speedup.conf`)
+### Configuring Adjustments (`adjustments.conf`)
 
-By default, the scripts multiply the playback speed by `2.0`. To configure a custom playback speed for a specific podcast, create a `speedup.conf` file directly inside the podcast's designated folder within `iTunes Media/Podcasts/`.
+To customise how audio files are processed for a specific podcast, create an `adjustments.conf` file directly inside the podcast's designated folder within `iTunes Media/Podcasts/`.
 
-**Example `speedup.conf` contents:**
+The following options are supported:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `speed` | `2.0` | Playback speed multiplier applied by `atempo`. |
+| `intro` | `0` | Seconds to cut from the **beginning** of the episode (measured in original, pre-speedup time). |
+| `outro` | `0` | Seconds to cut from the **end** of the episode (measured in original, pre-speedup time). |
+
+**Example `adjustments.conf`:**
 ```text
 speed=1.5
+intro=30
+outro=60
 ```
+
+This would skip the first 30 seconds and the last 60 seconds of each episode, then speed the remainder up to 1.5×.
 
 ## Running the Scripts
 
