@@ -54,11 +54,13 @@ TEMP_FILE="${BASENAME}_clean.${EXT}"
   -metadata longdesc="" \
   -metadata purl="" \
   -metadata copyright="" \
-  -metadata synopsis="" \
   -metadata subtitle="" \
   -metadata TIT3="" \
   -metadata TDES="" \
   -metadata encoder="" \
+  -metadata USLT="" \
+  -metadata COMM="" \
+  -metadata LSOT="" \
   -loglevel error \
   "$TEMP_FILE"
 
