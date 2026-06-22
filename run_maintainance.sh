@@ -17,6 +17,8 @@ show_help() {
   echo "  -r, --refresh-podcasts   Refresh podcasts (flag forwarded to maintenance script)"
   echo "  -w, --window             Run in new terminal window (default: runs inline)"
   echo "  -k, --keep-open          Do not close the new terminal window after completion (only applies with -w)"
+  echo "      --recent-only        Skip daily/global cleanup steps for a lighter recent podcast pass"
+  echo "      --hours INT          Set the number of hours to check for recent podcasts (passed to refresh_latest.scpt)"
   echo "  -h, --help               Show this help message"
   echo ""
 }
@@ -34,6 +36,8 @@ MODE_SELECTED=false
 SKIP_FILES=false
 SKIP_ITUNES=false
 KEEP_OPEN=false
+RECENT_ONLY=false
+HOURS=""
 
 # 2. Parse Arguments
 for arg in "$@"; do
@@ -49,6 +53,14 @@ for arg in "$@"; do
     -k|--keep-open)
       KEEP_OPEN=true
       shift
+      ;;
+    --recent-only)
+      RECENT_ONLY=true
+      shift
+      ;;
+    --hours)
+      HOURS="$2"
+      shift 2
       ;;
     -r|--refresh-podcast|--refresh-podcasts)
       REFRESH_PODCAST=true
@@ -99,6 +111,14 @@ fi
 
 if [ "$REFRESH_PODCAST" = true ]; then
   CMD_FLAGS="$CMD_FLAGS --refresh-podcasts"
+fi
+
+if [ "$RECENT_ONLY" = true ]; then
+  CMD_FLAGS="$CMD_FLAGS --recent-only"
+fi
+
+if [ -n "$HOURS" ]; then
+  CMD_FLAGS="$CMD_FLAGS --hours $HOURS"
 fi
 
 # Construct full command

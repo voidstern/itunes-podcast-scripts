@@ -98,15 +98,9 @@ on processPodcastLine(aLine, targetGrouping)
                     
                 else
                     -- LIMIT MODE (Slice & Loop)
-                    -- We must fetch the list to slice it.
-                    set matchingTracks to (every track of playlist "Podcasts" whose album is pName and unplayed is true)
-                    
-                    set tracksToUpdate to {}
-                    if foundCount < pCount then
-                        set tracksToUpdate to matchingTracks
-                    else
-                        set tracksToUpdate to items 1 through pCount of matchingTracks
-                    end if
+                    -- Fetch dates with the track references so we can pick the oldest episodes explicitly.
+                    set {matchingTracks, matchingReleaseDates, matchingDateAdded} to {contents, release date, date added} of (every track of playlist "Podcasts" whose album is pName and unplayed is true)
+                    set tracksToUpdate to my oldestTracks(matchingTracks, matchingReleaseDates, matchingDateAdded, pCount)
                     
                     repeat with tr in tracksToUpdate
                         set grouping of tr to targetGrouping
@@ -120,6 +114,50 @@ on processPodcastLine(aLine, targetGrouping)
         end try
     end tell
 end processPodcastLine
+
+on oldestTracks(trackList, releaseDateList, dateAddedList, limitCount)
+    set sortedTracks to {}
+    set sortedDates to {}
+
+    repeat with i from 1 to count of trackList
+        set candidateTrack to item i of trackList
+        set candidateDate to my usableEpisodeDate(item i of releaseDateList, item i of dateAddedList)
+        set insertedTrack to false
+
+        repeat with sortIndex from 1 to count of sortedTracks
+            if candidateDate < (item sortIndex of sortedDates) then
+                if sortIndex is 1 then
+                    set sortedTracks to {candidateTrack} & sortedTracks
+                    set sortedDates to {candidateDate} & sortedDates
+                else
+                    set sortedTracks to (items 1 through (sortIndex - 1) of sortedTracks) & {candidateTrack} & (items sortIndex through -1 of sortedTracks)
+                    set sortedDates to (items 1 through (sortIndex - 1) of sortedDates) & {candidateDate} & (items sortIndex through -1 of sortedDates)
+                end if
+                set insertedTrack to true
+                exit repeat
+            end if
+        end repeat
+
+        if insertedTrack is false then
+            set end of sortedTracks to candidateTrack
+            set end of sortedDates to candidateDate
+        end if
+    end repeat
+
+    if (count of sortedTracks) > limitCount then
+        return items 1 through limitCount of sortedTracks
+    end if
+
+    return sortedTracks
+end oldestTracks
+
+on usableEpisodeDate(releaseDateValue, dateAddedValue)
+    if releaseDateValue is missing value then
+        return dateAddedValue
+    end if
+
+    return releaseDateValue
+end usableEpisodeDate
 
 -- OPTIMIZED HANDLER: Uses "Started" grouping instead of calculating bookmarks
 on processStartedEpisodes(targetGrouping, validNamesList)

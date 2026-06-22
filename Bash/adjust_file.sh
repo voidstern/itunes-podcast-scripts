@@ -2,6 +2,9 @@
 set -euo pipefail
 
 # --- Configuration ---
+DEFAULT_SPEED="2.0"
+DEFAULT_INTRO="0"
+DEFAULT_OUTRO="0"
 PRIMARY_MARKER_EXT="adjusted"
 SECONDARY_MARKER_EXT="adjust"
 
@@ -50,6 +53,37 @@ SCRIPT_SPEEDUP="${SCRIPT_DIR}/speedup.sh"
 SCRIPT_EMBED="${SCRIPT_DIR}/embed_podcast_cover.sh"
 SCRIPT_CLEAN="${SCRIPT_DIR}/clean_metadata.sh"
 
+write_adjusted_marker() {
+  local audio_file="$1"
+  local marker_file="$2"
+  local dir_of_file
+  local conf_file
+  local effective_speed="$DEFAULT_SPEED"
+  local effective_intro="$DEFAULT_INTRO"
+  local effective_outro="$DEFAULT_OUTRO"
+  local conf_speed
+  local conf_intro
+  local conf_outro
+
+  dir_of_file=$(dirname "$audio_file")
+  conf_file="${dir_of_file}/adjustments.conf"
+
+  if [[ -n "$conf_file" ]]; then
+    conf_speed=$(grep -E '^speed=[0-9]*\.?[0-9]+' "$conf_file" 2>/dev/null | head -n1 | cut -d'=' -f2 || true)
+    conf_intro=$(grep -E '^intro=[0-9]*\.?[0-9]+' "$conf_file" 2>/dev/null | head -n1 | cut -d'=' -f2 || true)
+    conf_outro=$(grep -E '^outro=[0-9]*\.?[0-9]+' "$conf_file" 2>/dev/null | head -n1 | cut -d'=' -f2 || true)
+    [[ -n "$conf_speed" ]] && effective_speed="$conf_speed"
+    [[ -n "$conf_intro" ]] && effective_intro="$conf_intro"
+    [[ -n "$conf_outro" ]] && effective_outro="$conf_outro"
+  fi
+
+  {
+    printf 'speed=%s\n' "$effective_speed"
+    printf 'intro=%s\n' "$effective_intro"
+    printf 'outro=%s\n' "$effective_outro"
+  } > "$marker_file"
+}
+
 base_without_ext="${FILE%.*}"
 primary_marker="${base_without_ext}.${PRIMARY_MARKER_EXT}"
 secondary_marker="${base_without_ext}.${SECONDARY_MARKER_EXT}"
@@ -76,7 +110,7 @@ if [[ "$SKIP_SPEEDUP" == "false" ]]; then
     if "$SCRIPT_SPEEDUP" "$FILE"; then
       # --- CRITICAL POINT ---
       # Speedup succeeded. We immediately mark the file.
-      : > "$primary_marker"
+      write_adjusted_marker "$FILE" "$primary_marker"
       echo "   ✓ Speedup applied & marked."
     else
       echo "   ${RED}✗ Speedup failed.${RESET} Aborting." >&2

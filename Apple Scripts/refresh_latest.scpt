@@ -1,9 +1,19 @@
-tell application "iTunes"
-    with timeout of 86400 seconds
+on run argv
+    set cutoffHours to 24 -- fallback default if no argument is provided
+    if (count of argv) > 0 then
         try
-            -- 1. Calculate the cutoff time (Current Time - 3 Hours), this should catch all episodes from the last refresh
-            set currentDate to (current date)
-            set cutoffDate to currentDate - (3 * 60 * 60) -- 3 hours in seconds
+            set cutoffHours to (item 1 of argv) as number
+        on error
+            set cutoffHours to 24
+        end try
+    end if
+
+    tell application "iTunes"
+        with timeout of 86400 seconds
+            try
+                -- 1. Calculate the cutoff time, this should catch all episodes from the last refresh
+                set currentDate to (current date)
+                set cutoffDate to currentDate - (cutoffHours * 60 * 60) -- Use the parsed hours in seconds
             
             -- 2. Find tracks: Media Kind is 'Podcast' AND Added Date is recent
             set recentPodcasts to (every file track whose media kind is podcast and date added is greater than cutoffDate)
@@ -38,3 +48,4 @@ tell application "iTunes"
         end try
 	end timeout
 end tell
+end run

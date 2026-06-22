@@ -88,9 +88,21 @@ if [[ "$effective_outro" != "0" && "$effective_outro" != "0.0" ]]; then
   fi
 fi
 
+# Build atempo filter string.
+# ffmpeg's atempo filter is limited to [0.5, 2.0], so for speeds above 2x
+# we chain multiple atempo filters whose product equals the target speed.
+# For speeds <= 2x this produces exactly "atempo=<speed>" (identical call).
+ATEMPO_FILTER=""
+remaining_speed="$effective_speed"
+while (( $(echo "$remaining_speed > 2.0" | bc -l) )); do
+  ATEMPO_FILTER+="${ATEMPO_FILTER:+,}atempo=2.0"
+  remaining_speed=$(echo "scale=10; $remaining_speed / 2.0" | bc -l)
+done
+ATEMPO_FILTER+="${ATEMPO_FILTER:+,}atempo=${remaining_speed}"
+
 # Run ffmpeg, redirecting both stdout and stderr to the log file
 if ffmpeg -nostdin ${INPUT_OPTS[@]+"${INPUT_OPTS[@]}"} -i "$FILE" ${OUTPUT_OPTS[@]+"${OUTPUT_OPTS[@]}"} \
-    -filter:a "atempo=${effective_speed}" -vn -y -write_xing 0 \
+    -filter:a "${ATEMPO_FILTER}" -vn -y -write_xing 0 \
     "$tmp_file" >"$ffmpeg_log" 2>&1; then
   mv -f "$tmp_file" "$FILE"
   rm -f "$ffmpeg_log" # Clean up log on success

@@ -4,6 +4,7 @@ set -euo pipefail
 # Marker extensions
 PRIMARY_MARKER_EXT="adjusted"
 SECONDARY_MARKER_EXT="adjust"
+TERTIARY_MARKER_EXT="metaclean"
 AUDIO_EXTENSIONS=("mp3" "m4a" "m4b" "aac" "wav" "aiff")
 
 # --- Colors ---
@@ -25,7 +26,8 @@ echo "${BOLD}${CYAN}Cleaning up orphaned marker files...${RESET}"
 # --- Cleanup orphaned marker files ---
 find "$INPUT_DIR" -type f \( \
   -name "*.${PRIMARY_MARKER_EXT}" -o \
-  -name "*.${SECONDARY_MARKER_EXT}" \
+  -name "*.${SECONDARY_MARKER_EXT}" -o \
+  -name "*.${TERTIARY_MARKER_EXT}" \
 \) -print0 | \
 while IFS= read -r -d '' marker_file; do
   base="${marker_file%.*}"

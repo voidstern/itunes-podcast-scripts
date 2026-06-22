@@ -20,6 +20,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REFRESH_PODCASTS=false
 SKIP_ITUNES=false
 SKIP_FILES=false
+RECENT_ONLY=false
+HOURS=""
 
 for arg in "$@"; do
   case $arg in
@@ -35,6 +37,14 @@ for arg in "$@"; do
       SKIP_FILES=true
       shift # Remove --skip-files from processing
       ;;
+    --recent-only)
+      RECENT_ONLY=true
+      shift # Remove --recent-only from processing
+      ;;
+    --hours)
+      HOURS="$2"
+      shift 2
+      ;;
     *)
       # Unknown option
       ;;
@@ -42,6 +52,10 @@ for arg in "$@"; do
 done
 
 # --- Main Logic ---
+
+if [ "$RECENT_ONLY" = true ]; then
+  echo "${BOLD}${CYAN}[Mode]${RESET} Recent-only maintenance enabled."
+fi
 
 # Only run the update and sleep if the flag was provided
 if [ "$REFRESH_PODCASTS" = true ]; then
@@ -72,9 +86,14 @@ if [ "$SKIP_FILES" = false ]; then
   "$SCRIPT_DIR/Bash/adjust_folder.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
 
   # Remove markers of deleted files
-  echo
-  echo "${BOLD}${CYAN}[Files]${RESET} Cleaning orphaned markers..."
-  "$SCRIPT_DIR/Bash/cleanup_markers.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
+  if [ "$RECENT_ONLY" = false ]; then
+    echo
+    echo "${BOLD}${CYAN}[Files]${RESET} Cleaning orphaned markers..."
+    "$SCRIPT_DIR/Bash/cleanup_markers.sh" "$SCRIPT_DIR/../iTunes/iTunes Media/Podcasts/"
+  else
+    echo
+    echo "${BOLD}${YELLOW}[Files]${RESET} Skipping orphaned marker cleanup (recent-only mode)."
+  fi
 
 else
   echo
@@ -88,33 +107,56 @@ if [ "$SKIP_ITUNES" = false ]; then
   # Refresh the duration in all podcasts added in the last 24hr - this assumes this script is run daily.
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Refreshing durations in iTunes..."
-  osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
+  if [ -n "$HOURS" ]; then
+    osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt" "$HOURS"
+  else
+    osascript "$SCRIPT_DIR/Apple Scripts/refresh_latest.scpt"
+  fi
 
-  # Mark Episodes in the "Deletable" playlist as played
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
-  osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
+  if [ "$RECENT_ONLY" = false ]; then
+    # Mark Episodes in the "Deletable" playlist as played
+    echo
+    echo "${BOLD}${CYAN}[iTunes]${RESET} Marking deletable episodes as played..."
+    osascript "$SCRIPT_DIR/Apple Scripts/mark_played.scpt"
 
-  # Update the stared books playlist
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
-  osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
+    # Update the stared books playlist
+    echo
+    echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started audiobooks..."
+    osascript "$SCRIPT_DIR/Apple Scripts/started_books.scpt"
 
-  # Update loved status and ratings (since the iPod classic doesn't know "Loved")
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing loved status and ratings..."
-  osascript "$SCRIPT_DIR/Apple Scripts/love_five_stars.scpt"
+    # Update loved status and ratings (since the iPod classic doesn't know "Loved")
+    echo
+    echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing loved status and ratings..."
+    osascript "$SCRIPT_DIR/Apple Scripts/love_five_stars.scpt"
 
-  # Update the started podcasts playlist
-  echo
-  echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
-  osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+    # Reset podcast groupings before rebuilding station and started groupings
+    echo
+    echo "${BOLD}${CYAN}[iTunes]${RESET} Resetting podcast groupings..."
+    osascript "$SCRIPT_DIR/Apple Scripts/clear_podcast_groupings.scpt"
+  else
+    echo
+    echo "${BOLD}${YELLOW}[iTunes]${RESET} Skipping daily iTunes cleanup scripts (recent-only mode)."
+  fi
 
   # Update podcast station playlists
   echo
   echo "${BOLD}${CYAN}[iTunes]${RESET} Updating podcast station playlists..."
   "$SCRIPT_DIR/Bash/update_stations.sh"
 
+  # Update the started podcasts playlist
+  if [ "$RECENT_ONLY" = false ]; then
+    echo
+    echo "${BOLD}${CYAN}[iTunes]${RESET} Updating started podcasts..."
+    osascript "$SCRIPT_DIR/Apple Scripts/started_podcasts.scpt"
+  else
+    echo
+    echo "${BOLD}${YELLOW}[iTunes]${RESET} Skipping started podcasts scan (recent-only mode)."
+  fi
+
+  # Sync all connected iPods
+  echo
+  echo "${BOLD}${CYAN}[iTunes]${RESET} Syncing connected iPods..."
+  osascript "$SCRIPT_DIR/Apple Scripts/update_ipods.scpt"
 
 else
   echo
