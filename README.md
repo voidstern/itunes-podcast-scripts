@@ -11,7 +11,8 @@ These scripts provide those missing features to an iTunes-based podcast syncing 
 - **Updating Duration:** Updates the track duration within iTunes after the file has been sped up.
 - **Cover Art Embedding:** Searches for and embeds the podcast cover art directly into the MP3 files.
 - **Podcast "Stations":** Updates "station" playlists containing only the oldest `X` episodes of given podcasts.
-- **Partially Played:** Maintains a "partially played/started" playlist so you can easily pick up where you left off.
+- **Partially Played:** Maintains "partially played/started" podcast and audiobook playlists so you can easily pick up where you left off.
+- **iPod Sync Preparation:** Marks deletable episodes as played, syncs loved status to ratings for iPod compatibility, and syncs connected iPods.
 
 ## Installation and Requirements
 
@@ -72,24 +73,56 @@ This would skip the first 30 seconds and the last 60 seconds of each episode, th
 
 ## Running the Scripts
 
-The primary entry point is the `run_maintainance.sh` script, which provides several helpful flags:
+The primary entry point is the `run_maintainance.sh` script, which wraps `maintainance.sh` with higher-level modes:
 
 ```bash
 ./run_maintainance.sh [OPTIONS] [MODE]
 ```
 
 ### Modes (One is Required)
-*   **`-a`, `--all`**: Run maintenance on everything (both files and iTunes updates). It forces a refresh of podcasts.
-*   **`-f`, `--files`**: Run maintenance on **Files only**.
+*   **`-a`, `--all`**: Run maintenance on everything (both files and iTunes updates). It forces a podcast refresh and runs `-c -a -m -d -p -b -l -g -s -e -i`.
+*   **`-f`, `--files`**: Run maintenance on **Files only** (`-c -a -m`).
     *   *Tip: I often run this through a network share from my modern Mac after subscribing to a new podcast with many episodes. `ffmpeg` runs much faster on modern hardware than on the old MacBook, even over the network.*
-*   **`-t`, `--itunes`**: Run maintenance on **iTunes only**.
+*   **`-t`, `--itunes`**: Run maintenance on **iTunes only** (`-d -p -b -l -g -s -e -i`).
     *   *Tip: Use this on the old MacBook after running the file-only mode over the network. This quickly updates iTunes with the changes made to the files.*
+*   **`-s`, `--stations`**: Reset podcast groupings, rebuild station playlists, update started podcasts, and sync connected iPods (`-g -s -e -i`).
+*   **`-i`, `--sync-ipod`**: Mark deletable episodes as played and sync connected iPods (`-p -i`).
 
 ### Additional Options
-*   **`-r`, `--refresh-podcasts`**: Forces iTunes to check for and download new podcast episodes prior to running the other maintenance scripts.
+*   **`-r`, `--refresh-podcast`, `--refresh-podcasts`**: Forces iTunes to check for and download new podcast episodes prior to running the other maintenance scripts.
+*   **`--recent-only`**: Runs lighter recent-podcast modes. With `--itunes`, it runs `-d -s -i`; with `--files`, it runs `-c -a`; with `--all`, it runs `-c -a -d -s -p -i` and still forces a podcast refresh.
+*   **`--hours INT`**: Sets the number of hours checked by the recent podcast duration refresh (`refresh_latest.scpt`). This is passed through to `maintainance.sh`.
 *   **`-w`, `--window`**: Opens a new Terminal window to run the script instead of running inline. By default, the window will close automatically when the script finishes.
     *   *Note: If the window stays open displaying "Process completed", you may need to check your Terminal settings. Go to **Terminal > Preferences > Profiles > Shell** and set "When the shell exits" to **"Close if the shell exited cleanly"**.*
 *   **`-k`, `--keep-open`**: Leaves the new Terminal window open after the script finishes (only applicable when used with `-w`).
+
+### Direct Step Runner
+
+You can also call `maintainance.sh` directly when you want to choose the exact steps:
+
+```bash
+./maintainance.sh [STEPS] [OPTIONS]
+```
+
+Available steps can be combined:
+
+*   **`-r`**: Refresh podcasts in iTunes.
+*   **`-c`**: Load missing podcast cover artwork.
+*   **`-a`**: Adjust audio files.
+*   **`-m`**: Clean orphaned markers.
+*   **`-d`**: Refresh recent podcast durations in iTunes.
+*   **`-p`**: Mark deletable episodes as played.
+*   **`-b`**: Update started audiobooks.
+*   **`-l`**: Sync loved status and ratings.
+*   **`-g`**: Reset podcast groupings.
+*   **`-s`**: Update podcast station playlists.
+*   **`-e`**: Update started podcasts.
+*   **`-i`**: Sync connected iPods.
+
+Direct options:
+
+*   **`--hours INT`**: Set the number of hours to check for recent podcasts.
+*   **`-h`, `--help`**: Show the help message.
 
 ## Automating the Scripts
 

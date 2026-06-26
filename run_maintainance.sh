@@ -11,6 +11,8 @@ show_help() {
   echo "Modes (one required):"
   echo "  -t, --itunes             Run maintenance on iTunes only"
   echo "  -f, --files              Run maintenance on Files only"
+  echo "  -s, --stations           Reset groupings, update stations, and update started podcasts"
+  echo "  -i, --sync-ipod          Mark deletable episodes as played and sync connected iPods"
   echo "  -a, --all                Run maintenance on everything (force refresh podcasts)"
   echo ""
   echo "Options:"
@@ -33,15 +35,14 @@ fi
 OPEN_NEW_WINDOW=false
 REFRESH_PODCAST=false
 MODE_SELECTED=false
-SKIP_FILES=false
-SKIP_ITUNES=false
+MODE=""
 KEEP_OPEN=false
 RECENT_ONLY=false
 HOURS=""
 
 # 2. Parse Arguments
-for arg in "$@"; do
-  case $arg in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -h|--help)
       show_help
       exit 0
@@ -67,19 +68,27 @@ for arg in "$@"; do
       shift
       ;;
     -t|--itunes)
-      SKIP_FILES=true
+      MODE="itunes"
       MODE_SELECTED=true
       shift
       ;;
     -f|--files)
-      SKIP_ITUNES=true
+      MODE="files"
+      MODE_SELECTED=true
+      shift
+      ;;
+    -s|--stations)
+      MODE="stations"
+      MODE_SELECTED=true
+      shift
+      ;;
+    -i|--sync-ipod)
+      MODE="sync_ipod"
       MODE_SELECTED=true
       shift
       ;;
     -a|--all)
-      # --all means NO skips, but force refresh-podcast
-      SKIP_FILES=false
-      SKIP_ITUNES=false
+      MODE="all"
       REFRESH_PODCAST=true
       MODE_SELECTED=true
       shift
@@ -100,21 +109,44 @@ fi
 
 # 4. Build the flags for the target script
 CMD_FLAGS=""
+MODE_FLAGS=""
 
-if [ "$SKIP_FILES" = true ]; then
-  CMD_FLAGS="$CMD_FLAGS --skip-files"
-fi
-
-if [ "$SKIP_ITUNES" = true ]; then
-  CMD_FLAGS="$CMD_FLAGS --skip-itunes"
-fi
+case "$MODE" in
+  itunes)
+    if [ "$RECENT_ONLY" = true ]; then
+      MODE_FLAGS="-d -s -i"
+    else
+      MODE_FLAGS="-d -p -b -l -g -s -e -i"
+    fi
+    ;;
+  files)
+    if [ "$RECENT_ONLY" = true ]; then
+      MODE_FLAGS="-c -a"
+    else
+      MODE_FLAGS="-c -a -m"
+    fi
+    ;;
+  stations)
+    MODE_FLAGS="-g -s -e -i"
+    ;;
+  sync_ipod)
+    MODE_FLAGS="-p -i"
+    ;;
+  all)
+    if [ "$RECENT_ONLY" = true ]; then
+      MODE_FLAGS="-c -a -d -s -p -i"
+    else
+      MODE_FLAGS="-c -a -m -d -p -b -l -g -s -e -i"
+    fi
+    ;;
+esac
 
 if [ "$REFRESH_PODCAST" = true ]; then
-  CMD_FLAGS="$CMD_FLAGS --refresh-podcasts"
+  CMD_FLAGS="$CMD_FLAGS -r"
 fi
 
-if [ "$RECENT_ONLY" = true ]; then
-  CMD_FLAGS="$CMD_FLAGS --recent-only"
+if [ -n "$MODE_FLAGS" ]; then
+  CMD_FLAGS="$CMD_FLAGS $MODE_FLAGS"
 fi
 
 if [ -n "$HOURS" ]; then
